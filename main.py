@@ -1,8 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
+import httpx
 
 app = FastAPI()
-
-
-@app.get('/')
-def read_books():
-    return {"hi there"}
