@@ -18,6 +18,13 @@ def get_db():
         db.close()
 
 
+@app.delete('/produc/{id}')
+def del_product(id, db: Session = Depends(get_db)):
+    db.query(models.Product).filter(models.Product.id == id).delete(synchronize_session=False)
+    db.commit()
+    return {f"product deleted with id: {id}"}
+
+
 @app.get('/product/{id}')
 def products(id, db: Session = Depends(get_db)):
     products = db.query(models.Product).filter(models.Product.id == id).first()
