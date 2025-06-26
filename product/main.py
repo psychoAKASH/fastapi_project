@@ -18,6 +18,16 @@ def get_db():
         db.close()
 
 
+@app.put('/product/{id}')
+def update_product(id: int, request: schemas.Product, db: Session = Depends(get_db)):
+    product = db.query(models.Product).filter(models.Product.id == id)
+    if product.first():
+        product.update(request.model_dump())
+        db.commit()
+        return {'message': 'Product successfully updated'}
+    return {'error': 'Product not found'}
+
+
 @app.delete('/produc/{id}')
 def del_product(id, db: Session = Depends(get_db)):
     db.query(models.Product).filter(models.Product.id == id).delete(synchronize_session=False)
