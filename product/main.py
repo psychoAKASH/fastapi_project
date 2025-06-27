@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from . import schemas
 from . import models
 from .database import engine, SessionLocal
+from typing import List
 
 app = FastAPI()
 
@@ -35,13 +36,13 @@ def del_product(id, db: Session = Depends(get_db)):
     return {f"product deleted with id: {id}"}
 
 
-@app.get('/product/{id}')
+@app.get('/product/{id}', response_model=schemas.DisplayProduct)
 def products(id, db: Session = Depends(get_db)):
     products = db.query(models.Product).filter(models.Product.id == id).first()
     return products
 
 
-@app.get('/products')
+@app.get('/products', response_model=List[schemas.DisplayProduct])
 def products(db: Session = Depends(get_db)):
     products = db.query(models.Product).all()
     return products
