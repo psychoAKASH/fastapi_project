@@ -5,10 +5,13 @@ from ..database import get_db
 from .. import models, schemas
 from typing import List
 
-router = APIRouter()
+router = APIRouter(
+    tags=['Product'],
+    prefix='/product'
+)
 
 
-@router.put('/product/{id}', tags=['Products'])
+@router.put('/{id}')
 def update_product(id: int, request: schemas.Product, db: Session = Depends(get_db)):
     product = db.query(models.Product).filter(models.Product.id == id)
     if product.first():
@@ -18,14 +21,14 @@ def update_product(id: int, request: schemas.Product, db: Session = Depends(get_
     return {'error': 'Product not found'}
 
 
-@router.delete('/produc/{id}', tags=['Products'])
+@router.delete('/{id}')
 def del_product(id, db: Session = Depends(get_db)):
     db.query(models.Product).filter(models.Product.id == id).delete(synchronize_session=False)
     db.commit()
     return {f"product deleted with id: {id}"}
 
 
-@router.get('/product/{id}', response_model=schemas.DisplayProduct, tags=['Products'])
+@router.get('/{id}', response_model=schemas.DisplayProduct)
 def products(id, response: Response, db: Session = Depends(get_db)):
     product = db.query(models.Product).filter(models.Product.id == id).first()
     if not product:
@@ -33,13 +36,13 @@ def products(id, response: Response, db: Session = Depends(get_db)):
     return product
 
 
-@router.get('/products', response_model=List[schemas.DisplayProduct], tags=['Products'])
+@router.get('/', response_model=List[schemas.DisplayProduct])
 def products(db: Session = Depends(get_db)):
     products = db.query(models.Product).all()
     return products
 
 
-@router.post('/product', tags=['Products'])
+@router.post('/')
 def add(request: schemas.Product, db: Session = Depends(get_db)):
     new_product = models.Product(name=request.name, description=request.description, price=request.price, seller_id=1)
     db.add(new_product)
