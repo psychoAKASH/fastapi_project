@@ -1,14 +1,20 @@
-from fastapi import FastAPI
+from pydoc import describe
+from warnings import deprecated
+
+from fastapi import FastAPI, status, Response, HTTPException
 from fastapi.params import Depends
 from sqlalchemy.orm import Session
 from . import schemas
 from . import models
 from .database import engine, SessionLocal
 from typing import List
+from passlib.context import CryptContext
 
 app = FastAPI()
 
 models.Base.metadata.create_all(engine)
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def get_db():
@@ -37,9 +43,11 @@ def del_product(id, db: Session = Depends(get_db)):
 
 
 @app.get('/product/{id}', response_model=schemas.DisplayProduct)
-def products(id, db: Session = Depends(get_db)):
-    products = db.query(models.Product).filter(models.Product.id == id).first()
-    return products
+def products(id, response: Response, db: Session = Depends(get_db)):
+    product = db.query(models.Product).filter(models.Product.id == id).first()
+    if not product:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+    return product
 
 
 @app.get('/products', response_model=List[schemas.DisplayProduct])
@@ -55,3 +63,13 @@ def add(request: schemas.Product, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_product)
     return request
+
+
+@app.post('/seller')
+def create_seller(request: schemas.Seller, db: Session = Depends(get_db)):
+    hashed_password = pwd_context.hash(request.password)
+    new_seller = models.Seller(username=request.username, email=request.email, password=hashed_password)
+    db.add(new_seller)
+    db.commit()
+    db.refresh(new_seller)
+    return new_seller
