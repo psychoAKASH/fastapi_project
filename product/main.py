@@ -58,14 +58,14 @@ def products(db: Session = Depends(get_db)):
 
 @app.post('/product')
 def add(request: schemas.Product, db: Session = Depends(get_db)):
-    new_product = models.Product(name=request.name, description=request.description, price=request.price)
+    new_product = models.Product(name=request.name, description=request.description, price=request.price, seller_id=1)
     db.add(new_product)
     db.commit()
     db.refresh(new_product)
     return request
 
 
-@app.post('/seller')
+@app.post('/seller', response_model=schemas.DisplaySeller)
 def create_seller(request: schemas.Seller, db: Session = Depends(get_db)):
     hashed_password = pwd_context.hash(request.password)
     new_seller = models.Seller(username=request.username, email=request.email, password=hashed_password)
